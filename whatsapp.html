@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>آد ماركت — نظام التواصل</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0c10;--surface:#111318;--surface2:#181c24;--border:#1e2330;
+    --accent:#e8c84a;--text:#e8eaf0;--text2:#8892a4;--text3:#4a5568;
+    --green:#22c55e;--wa:#25D366;--wa-dark:#1da851;
+    --red:#ef4444;--yellow:#f59e0b;--blue:#3b82f6;
+    --radius:12px;--radius-sm:8px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+  #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(ellipse at 30% 50%,#0d1a0f 0%,var(--bg) 60%);position:relative;}
+  #loginScreen::before{content:'';position:absolute;inset:0;pointer-events:none;
+    background-image:repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(37,211,102,0.03) 40px,rgba(37,211,102,0.03) 41px),
+    repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(37,211,102,0.03) 40px,rgba(37,211,102,0.03) 41px);}
+  .login-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:48px 40px;width:380px;
+    box-shadow:0 40px 80px rgba(0,0,0,0.6);animation:fadeUp 0.5s ease;}
+  .login-logo{text-align:center;margin-bottom:32px;}
+  .login-logo .brand{font-size:26px;font-weight:700;color:var(--wa);}
+  .login-logo .sub{font-size:13px;color:var(--text2);margin-top:4px;}
+  .input-group{margin-bottom:16px;}
+  .input-group label{display:block;font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:500;}
+  .input-group input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);
+    padding:12px 16px;color:var(--text);font-size:14px;font-family:inherit;outline:none;transition:border-color 0.2s;}
+  .input-group input:focus{border-color:rgba(37,211,102,0.4);}
+  .btn-login{width:100%;background:var(--wa);color:#fff;border:none;border-radius:var(--radius-sm);
+    padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px;transition:all 0.2s;}
+  .btn-login:hover{background:var(--wa-dark);transform:translateY(-1px);}
+  .login-error{color:var(--red);font-size:12px;text-align:center;margin-top:12px;display:none;}
+
+  #appScreen{display:none;min-height:100vh;}
+  .sidebar{position:fixed;top:0;right:0;width:220px;height:100vh;background:var(--surface);
+    border-left:1px solid var(--border);display:flex;flex-direction:column;padding:24px 0;z-index:100;}
+  .sidebar-brand{padding:0 20px 24px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+  .sidebar-brand .name{font-size:18px;font-weight:700;color:var(--wa);}
+  .sidebar-brand .sub{font-size:11px;color:var(--text2);margin-top:3px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:12px 20px;cursor:pointer;
+    color:var(--text2);font-size:13px;font-weight:500;transition:all 0.2s;border-right:3px solid transparent;}
+  .nav-item:hover{color:var(--text);background:rgba(255,255,255,0.03);}
+  .nav-item.active{color:var(--wa);border-right-color:var(--wa);background:rgba(37,211,102,0.06);}
+  .sidebar-bottom{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);}
+  .btn-logout{width:100%;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);
+    padding:10px;color:var(--text2);font-size:13px;cursor:pointer;font-family:inherit;transition:all 0.2s;}
+  .btn-logout:hover{border-color:var(--red);color:var(--red);}
+  .main-content{margin-right:220px;padding:32px;min-height:100vh;}
+  .page{display:none;}.page.active{display:block;animation:fadeUp 0.3s ease;}
+  .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+  .page-title{font-size:22px;font-weight:700;}
+  .page-sub{font-size:13px;color:var(--text2);margin-top:2px;}
+
+  .send-layout{display:grid;grid-template-columns:1fr 400px;gap:24px;}
+  .applicants-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+  .panel-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .panel-head-title{font-size:14px;font-weight:600;}
+  .search-box{flex:1;min-width:120px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);
+    padding:8px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;}
+  .search-box:focus{border-color:rgba(37,211,102,0.3);}
+  .search-box::placeholder{color:var(--text3);}
+  .filter-select{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);
+    padding:8px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;cursor:pointer;}
+  .select-all-row{padding:10px 20px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);}
+  .select-all-row input{cursor:pointer;accent-color:var(--wa);}
+  .applicant-list{max-height:540px;overflow-y:auto;}
+  .applicant-item{display:flex;align-items:center;gap:12px;padding:13px 20px;
+    border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;position:relative;}
+  .applicant-item:hover{background:rgba(255,255,255,0.02);}
+  .applicant-item.selected{background:rgba(37,211,102,0.06);border-right:3px solid var(--wa);}
+  .applicant-item:last-child{border-bottom:none;}
+  .applicant-avatar{width:38px;height:38px;border-radius:50%;background:var(--surface2);
+    display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;
+    color:var(--accent);flex-shrink:0;border:1px solid var(--border);}
+  .applicant-info{flex:1;min-width:0;}
+  .applicant-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .applicant-meta{font-size:11px;color:var(--text2);margin-top:2px;}
+  .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600;}
+  .badge-review{background:rgba(245,158,11,0.12);color:var(--yellow);}
+  .badge-accepted{background:rgba(34,197,94,0.12);color:var(--green);}
+  .badge-rejected{background:rgba(239,68,68,0.12);color:var(--red);}
+  .badge-pending{background:rgba(99,102,241,0.12);color:#818cf8;}
+  .sent-dot{width:8px;height:8px;border-radius:50%;background:var(--wa);
+    position:absolute;top:13px;left:18px;box-shadow:0 0 6px var(--wa);}
+
+  .compose-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:24px;height:fit-content;position:sticky;top:32px;}
+  .compose-panel h3{font-size:14px;font-weight:600;margin-bottom:4px;}
+  .compose-sub{font-size:11px;color:var(--text2);margin-bottom:16px;}
+
+  .type-selector{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px;}
+  .type-btn{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);
+    padding:9px 8px;font-size:11px;color:var(--text2);cursor:pointer;font-family:inherit;
+    transition:all 0.2s;font-weight:500;text-align:center;line-height:1.4;}
+  .type-btn:hover{border-color:var(--wa);color:var(--wa);}
+  .type-btn.active{background:rgba(37,211,102,0.08);border-color:var(--wa);color:var(--wa);}
+  .type-btn.rej:hover,.type-btn.rej.active{border-color:var(--red);color:var(--red);background:rgba(239,68,68,0.08);}
+
+  .rejection-block{background:var(--bg);border:1px solid rgba(239,68,68,0.2);border-radius:var(--radius-sm);
+    padding:14px;margin-bottom:14px;display:none;border-right:3px solid var(--red);}
+  .rejection-block.show{display:block;}
+  .rejection-block-label{font-size:11px;color:var(--red);font-weight:600;margin-bottom:10px;}
+  .reason-btns{display:flex;flex-wrap:wrap;gap:6px;}
+  .reason-btn{background:var(--surface);border:1px solid var(--border);border-radius:20px;
+    padding:5px 12px;font-size:11px;color:var(--text2);cursor:pointer;font-family:inherit;transition:all 0.2s;font-weight:500;}
+  .reason-btn:hover,.reason-btn.active{background:rgba(239,68,68,0.1);border-color:var(--red);color:var(--red);}
+
+  .compose-label{font-size:11px;color:var(--text2);font-weight:500;margin-bottom:6px;}
+  .compose-textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);
+    padding:12px 14px;color:var(--text);font-size:12px;font-family:inherit;resize:vertical;
+    min-height:160px;outline:none;line-height:1.8;transition:border-color 0.2s;}
+  .compose-textarea:focus{border-color:rgba(37,211,102,0.3);}
+  .compose-hint{font-size:11px;color:var(--text3);margin-top:6px;margin-bottom:14px;}
+  .var-tag{display:inline-block;background:var(--surface2);border:1px solid var(--border);
+    border-radius:4px;padding:1px 5px;font-size:10px;color:var(--accent);margin:0 2px;font-family:monospace;}
+  .selected-count{font-size:12px;color:var(--text2);margin-bottom:10px;
+    background:var(--bg);border-radius:6px;padding:8px 12px;border:1px solid var(--border);}
+  .selected-count span{color:var(--wa);font-weight:700;}
+  .btn-wa{width:100%;background:var(--wa);color:#fff;border:none;border-radius:var(--radius-sm);
+    padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;
+    transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .btn-wa:hover{background:var(--wa-dark);transform:translateY(-1px);}
+  .btn-wa:disabled{background:var(--border);color:var(--text3);cursor:not-allowed;transform:none;}
+  .btn-secondary{width:100%;background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);
+    padding:10px;color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.2s;margin-top:8px;}
+  .btn-secondary:hover{border-color:var(--text2);color:var(--text);}
+
+  .templates-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .template-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;}
+  .template-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+  .template-card-head h3{font-size:14px;font-weight:600;}
+  .tpl-badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:600;}
+  .tpl-accepted{background:rgba(34,197,94,0.12);color:var(--green);}
+  .tpl-rejected{background:rgba(239,68,68,0.12);color:var(--red);}
+  .tpl-review{background:rgba(245,158,11,0.12);color:var(--yellow);}
+  .tpl-interview{background:rgba(59,130,246,0.12);color:var(--blue);}
+  .tpl-exam{background:rgba(232,200,74,0.12);color:var(--accent);}
+  .template-desc{font-size:11px;color:var(--text2);margin-bottom:12px;}
+  .tpl-textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);
+    padding:12px 14px;color:var(--text);font-size:12px;font-family:inherit;resize:vertical;
+    min-height:140px;outline:none;line-height:1.8;transition:border-color 0.2s;}
+  .tpl-textarea:focus{border-color:rgba(37,211,102,0.3);}
+  .btn-save-tpl{background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.2);
+    border-radius:var(--radius-sm);padding:8px 16px;color:var(--wa);font-size:12px;cursor:pointer;
+    font-family:inherit;font-weight:600;transition:all 0.2s;margin-top:12px;}
+  .btn-save-tpl:hover{background:rgba(37,211,102,0.18);}
+  .vars-hint{font-size:11px;color:var(--text3);margin-top:8px;}
+
+  .log-table{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+  .log-table table{width:100%;border-collapse:collapse;}
+  .log-table thead th{background:var(--surface2);padding:12px 16px;text-align:right;
+    font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;}
+  .log-table tbody tr{border-bottom:1px solid var(--border);}
+  .log-table tbody tr:last-child{border-bottom:none;}
+  .log-table td{padding:12px 16px;font-size:13px;}
+  .empty-state{text-align:center;padding:60px 20px;color:var(--text2);}
+  .empty-icon{font-size:40px;margin-bottom:12px;}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
+    padding:12px 20px;font-size:13px;font-weight:500;transition:transform 0.3s ease;z-index:3000;white-space:nowrap;}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+  .toast.success{border-color:rgba(34,197,94,0.3);color:var(--green);}
+  .toast.error{border-color:rgba(239,68,68,0.3);color:var(--red);}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+  @media(max-width:900px){
+    .sidebar{display:none;}.main-content{margin-right:0;padding:16px;}
+    .send-layout{grid-template-columns:1fr;}.templates-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="brand">💬 نظام التواصل</div>
+      <div class="sub">آد ماركت — واتساب للمتقدمين</div>
+    </div>
+    <div class="input-group">
+      <label>اسم المستخدم</label>
+      <input type="text" id="loginUser" placeholder="admin" />
+    </div>
+    <div class="input-group">
+      <label>كلمة المرور</label>
+      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+    </div>
+    <button class="btn-login" onclick="doLogin()">دخول</button>
+    <div class="login-error" id="loginError">اسم المستخدم أو كلمة المرور غلط</div>
+  </div>
+</div>
+
+<div id="appScreen">
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <div class="name">💬 التواصل</div>
+      <div class="sub">آد ماركت</div>
+    </div>
+    <div class="nav-item active" onclick="showPage('send',this)"><span>📤</span> إرسال رسائل</div>
+    <div class="nav-item" onclick="showPage('templates',this)"><span>📋</span> القوالب</div>
+    <div class="nav-item" onclick="showPage('log',this)"><span>📊</span> سجل الرسائل</div>
+    <div class="sidebar-bottom">
+      <button class="btn-logout" onclick="doLogout()">تسجيل الخروج</button>
+    </div>
+  </div>
+
+  <div class="main-content">
+
+    <!-- SEND -->
+    <div class="page active" id="pageSend">
+      <div class="page-header">
+        <div>
+          <div class="page-title">إرسال رسائل واتساب</div>
+          <div class="page-sub">اختر المتقدمين وأرسل الرسالة المناسبة</div>
+        </div>
+      </div>
+      <div class="send-layout">
+        <div class="applicants-panel">
+          <div class="panel-head">
+            <div class="panel-head-title">المتقدمون</div>
+            <input class="search-box" id="searchBox" placeholder="🔍 ابحث..." oninput="renderList()" />
+            <select class="filter-select" id="filterStatus" onchange="renderList()">
+              <option value="">الكل</option>
+              <option value="مراجعة">مراجعة</option>
+              <option value="مقبول">مقبول</option>
+              <option value="مرفوض">مرفوض</option>
+            </select>
+          </div>
+          <div class="select-all-row">
+            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" />
+            <label for="selectAll">تحديد الكل المعروض</label>
+            <span id="selectedCountBadge" style="margin-right:auto;color:var(--wa);font-weight:600;font-size:12px;"></span>
+          </div>
+          <div class="applicant-list" id="applicantList"></div>
+        </div>
+
+        <div class="compose-panel">
+          <h3>✍️ نوع الرسالة</h3>
+          <div class="compose-sub">اختر حسب حالة المتقدم</div>
+
+          <div class="type-selector">
+            <button class="type-btn active" data-type="accepted" onclick="selectType(this)">✅ مقبول</button>
+            <button class="type-btn rej" data-type="rejected_form" onclick="selectType(this)">❌ رفض التقديم</button>
+            <button class="type-btn rej" data-type="rejected_exam" onclick="selectType(this)">📝 رفض الاختبار</button>
+            <button class="type-btn" data-type="review" onclick="selectType(this)">🔄 قيد المراجعة</button>
+            <button class="type-btn" data-type="interview" onclick="selectType(this)">🗓️ دعوة مقابلة</button>
+            <button class="type-btn" data-type="exam" onclick="selectType(this)">📋 إرسال اختبار</button>
+          </div>
+
+          <div class="rejection-block" id="rejectionBlock">
+            <div class="rejection-block-label">⚠️ سبب الرفض — يُضاف تلقائياً للرسالة</div>
+            <div class="reason-btns">
+              <button class="reason-btn active" data-reason="" onclick="selectReason(this)">بدون سبب</button>
+              <button class="reason-btn" data-reason="exp" onclick="selectReason(this)">خبرة غير كافية</button>
+              <button class="reason-btn" data-reason="degree" onclick="selectReason(this)">المؤهل لا يناسب</button>
+              <button class="reason-btn" data-reason="age" onclick="selectReason(this)">العمر لا يستوفي</button>
+              <button class="reason-btn" data-reason="iqama" onclick="selectReason(this)">إقامة غير سارية</button>
+              <button class="reason-btn" data-reason="closed" onclick="selectReason(this)">الوظيفة اكتملت</button>
+              <button class="reason-btn" data-reason="score" onclick="selectReason(this)">النقاط أقل من الحد</button>
+            </div>
+          </div>
+
+          <div class="compose-label">نص الرسالة</div>
+          <textarea class="compose-textarea" id="msgBody"></textarea>
+          <div class="compose-hint">
+            <span class="var-tag">{الاسم}</span><span class="var-tag">{الوظيفة}</span><span class="var-tag">{الفرع}</span><span class="var-tag">{السبب}</span>
+          </div>
+
+          <div class="selected-count">تم تحديد <span id="selectedNum">0</span> متقدم</div>
+          <button class="btn-wa" onclick="sendMessages()" id="btnSend" disabled>
+            <span>📱</span> فتح واتساب وإرسال
+          </button>
+          <button class="btn-secondary" onclick="sendAllFiltered()">إرسال لكل المعروضين</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEMPLATES -->
+    <div class="page" id="pageTemplates">
+      <div class="page-header">
+        <div>
+          <div class="page-title">قوالب الرسائل</div>
+          <div class="page-sub">عدّل وحفظ — تُطبق فوراً</div>
+        </div>
+      </div>
+      <div class="templates-grid" id="templatesGrid"></div>
+    </div>
+
+    <!-- LOG -->
+    <div class="page" id="pageLog">
+      <div class="page-header">
+        <div>
+          <div class="page-title">سجل الرسائل</div>
+          <div class="page-sub">تاريخ التواصل مع المتقدمين</div>
+        </div>
+        <button onclick="clearLog()" style="background:transparent;border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 16px;color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;">🗑️ مسح السجل</button>
+      </div>
+      <div class="log-table">
+        <table>
+          <thead><tr><th>المتقدم</th><th>الوظيفة</th><th>نوع الرسالة</th><th>سبب الرفض</th><th>التاريخ</th></tr></thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var currentUser=null,selectedApplicants={},currentType='accepted',currentReason='';
+var sendQueue=[],sendIndex=0,messageLog=[];
+var credentials={user:'admin',pass:'add2024'};
+
+var rejectionReasons={
+  '':'',
+  'exp':'وذلك لأن الخبرة العملية المطلوبة للوظيفة لم تكن متوفرة في طلبك حتى الآن',
+  'degree':'وذلك لأن المؤهل الدراسي المطلوب لهذه الوظيفة لا ينطبق على مؤهلك الحالي',
+  'age':'وذلك لأن الوظيفة تشترط حداً أدنى للعمر لا ينطبق على وضعك الحالي',
+  'iqama':'وذلك لأن الوظيفة تستلزم إقامة سارية المفعول',
+  'closed':'وذلك لأن الوظيفة اكتملت باستيفاء العدد المطلوب من الموظفين',
+  'score':'وذلك لأن نتيجة تقييم الطلب لم تستوفِ الحد الأدنى المطلوب لهذه الوظيفة'
+};
+
+var templates={
+  accepted:{name:'مقبول',badge:'tpl-accepted',desc:'تُرسل عند قبول الطلب',
+    text:'السلام عليكم {الاسم} 🙏\n\nيسعدنا إبلاغك بأن طلبك لوظيفة *{الوظيفة}* في آد ماركت قد تم قبوله.\n\nسيتواصل معك أحد المسؤولين لتحديد موعد بدء العمل في فرع {الفرع}.\n\nنرحب بك في عائلة آد ماركت 🎉'},
+  rejected_form:{name:'رفض — التقديم',badge:'tpl-rejected',desc:'تُرسل عند رفض الطلب بناءً على شروط الفرز',
+    text:'السلام عليكم {الاسم} 🙏\n\nشكراً جزيلاً على اهتمامك بالعمل في آد ماركت وتقديمك لوظيفة *{الوظيفة}*.\n\nبعد مراجعة طلبك بعناية، لن نتمكن من المضي قدماً في هذه المرحلة، {السبب}.\n\nنقدّر وقتك ونتمنى لك التوفيق في مسيرتك المهنية.'},
+  rejected_exam:{name:'رفض — الاختبار',badge:'tpl-rejected',desc:'تُرسل للمحاسب بعد عدم اجتياز الاختبار',
+    text:'السلام عليكم {الاسم} 🙏\n\nشكراً على إكمالك الاختبار المحاسبي لوظيفة *{الوظيفة}* في آد ماركت.\n\nبعد مراجعة نتائج الاختبار، لم تصل الدرجة إلى الحد الأدنى المطلوب لاستكمال إجراءات التوظيف في هذه المرحلة.\n\nنثمّن مشاركتك ووقتك، ونتمنى لك التوفيق.'},
+  review:{name:'قيد المراجعة',badge:'tpl-review',desc:'تُرسل عند وضع الطلب قيد المراجعة',
+    text:'السلام عليكم {الاسم} 🙏\n\nاستلمنا طلبك لوظيفة *{الوظيفة}* في آد ماركت وهو حالياً قيد المراجعة.\n\nسنتواصل معك قريباً بإذن الله.'},
+  interview:{name:'دعوة مقابلة',badge:'tpl-interview',desc:'دعوة لحضور مقابلة عمل',
+    text:'السلام عليكم {الاسم} 🙏\n\nيسعدنا دعوتك لمقابلة وظيفية لوظيفة *{الوظيفة}* في فرع {الفرع}.\n\nالرجاء تأكيد حضورك وسيتم إبلاغك بالموعد والتفاصيل.'},
+  exam:{name:'إرسال اختبار',badge:'tpl-exam',desc:'مع رابط الاختبار المحاسبي',
+    text:'السلام عليكم {الاسم} 🙏\n\nكجزء من تقييم طلبك لوظيفة *{الوظيفة}* في آد ماركت، نرجو إكمال الاختبار المحاسبي على الرابط التالي:\n\n[رابط الاختبار]\n\nمدة الاختبار 20 دقيقة — يرجى إكماله خلال 48 ساعة.\n\nبالتوفيق 🌟'}
+};
+
+var applicants=[
+  {id:1,name:'محمد العمري',phone:'0501234567',job:'محاسب عام',status:'مقبول',branch:'الربوة'},
+  {id:2,name:'أحمد الشهري',phone:'0559876543',job:'محاسب عام',status:'مراجعة',branch:'الملز'},
+  {id:3,name:'خالد المطيري',phone:'0531122334',job:'محاسب عام',status:'مرفوض',branch:'الروضة'},
+  {id:4,name:'عمر القحطاني',phone:'0507788990',job:'محاسب عام',status:'مرفوض',branch:'المهدية'},
+  {id:5,name:'فهد الدوسري',phone:'0544556677',job:'محاسب عام',status:'مقبول',branch:'الربوة'}
+];
+
+function init(){
+  var sc=localStorage.getItem('wa_creds');if(sc)credentials=JSON.parse(sc);
+  var st=localStorage.getItem('wa_tpl3');if(st)templates=JSON.parse(st);
+  var sl=localStorage.getItem('wa_log');if(sl)messageLog=JSON.parse(sl);
+  var sa=localStorage.getItem('addmarket_applicants');if(sa){var p=JSON.parse(sa);if(p&&p.length)applicants=p;}
+}
+
+function doLogin(){
+  var u=document.getElementById('loginUser').value.trim();
+  var p=document.getElementById('loginPass').value;
+  if(u===credentials.user&&p===credentials.pass){
+    currentUser=u;
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('appScreen').style.display='block';
+    selectType(document.querySelector('.type-btn'));
+    renderList();renderTemplates();renderLog();
+  }else{document.getElementById('loginError').style.display='block';}
+}
+function doLogout(){
+  currentUser=null;
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+}
+
+function showPage(name,el){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('page'+name.charAt(0).toUpperCase()+name.slice(1)).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+  if(el)el.classList.add('active');
+}
+
+function selectType(el){
+  var type=el.getAttribute('data-type');
+  currentType=type;
+  document.querySelectorAll('.type-btn').forEach(function(b){b.classList.remove('active');});
+  el.classList.add('active');
+  var isRej=type==='rejected_form'||type==='rejected_exam';
+  document.getElementById('rejectionBlock').className='rejection-block'+(isRej?' show':'');
+  if(!isRej){currentReason='';resetReasonBtns();}
+  buildMessage();
+}
+
+function selectReason(el){
+  currentReason=el.getAttribute('data-reason');
+  document.querySelectorAll('.reason-btn').forEach(function(b){b.classList.remove('active');});
+  el.classList.add('active');
+  buildMessage();
+}
+
+function resetReasonBtns(){
+  document.querySelectorAll('.reason-btn').forEach(function(b){b.classList.remove('active');});
+  var first=document.querySelector('.reason-btn');if(first)first.classList.add('active');
+}
+
+function buildMessage(){
+  var tpl=templates[currentType];
+  if(!tpl){document.getElementById('msgBody').value='';return;}
+  var reasonText='';
+  if(currentReason&&rejectionReasons[currentReason]){
+    reasonText=rejectionReasons[currentReason];
+  }
+  document.getElementById('msgBody').value=tpl.text.replace(/\{السبب\}/g,reasonText);
+}
+
+function renderList(){
+  var search=document.getElementById('searchBox').value.toLowerCase();
+  var filter=document.getElementById('filterStatus').value;
+  var filtered=applicants.filter(function(a){
+    return(!search||a.name.toLowerCase().indexOf(search)>=0||a.phone.indexOf(search)>=0)&&(!filter||a.status===filter);
+  });
+  var container=document.getElementById('applicantList');
+  container.innerHTML='';
+  if(!filtered.length){container.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:13px">لا توجد نتائج</div></div>';return;}
+  filtered.forEach(function(a){
+    var item=document.createElement('div');
+    item.className='applicant-item'+(selectedApplicants[a.id]?' selected':'');
+    var sc=a.status==='مقبول'?'badge-accepted':a.status==='مرفوض'?'badge-rejected':a.status==='مراجعة'?'badge-review':'badge-pending';
+    var sentBadge=messageLog.some(function(l){return l.applicantId===a.id;})?'<div class="sent-dot"></div>':'';
+    var initials=a.name.trim().split(' ').slice(0,2).map(function(w){return w[0];}).join('');
+    item.innerHTML=sentBadge+
+      '<div class="applicant-avatar">'+initials+'</div>'+
+      '<div class="applicant-info"><div class="applicant-name">'+a.name+'</div><div class="applicant-meta">'+a.phone+' · '+a.job+'</div></div>'+
+      '<span class="badge '+sc+'">'+a.status+'</span>';
+    item.onclick=function(){toggleSelect(a.id);};
+    container.appendChild(item);
+  });
+  updateSelectedCount();
+}
+
+function toggleSelect(id){if(selectedApplicants[id])delete selectedApplicants[id];else selectedApplicants[id]=true;renderList();updateSelectedCount();}
+function toggleSelectAll(){
+  var checked=document.getElementById('selectAll').checked;
+  var search=document.getElementById('searchBox').value.toLowerCase();
+  var filter=document.getElementById('filterStatus').value;
+  var filtered=applicants.filter(function(a){return(!search||a.name.toLowerCase().indexOf(search)>=0)&&(!filter||a.status===filter);});
+  selectedApplicants={};
+  if(checked)filtered.forEach(function(a){selectedApplicants[a.id]=true;});
+  renderList();updateSelectedCount();
+}
+function updateSelectedCount(){
+  var count=Object.keys(selectedApplicants).length;
+  document.getElementById('selectedNum').textContent=count;
+  document.getElementById('selectedCountBadge').textContent=count>0?count+' محدد':'';
+  document.getElementById('btnSend').disabled=count===0;
+}
+
+function sendMessages(){
+  var ids=Object.keys(selectedApplicants);
+  if(!ids.length){showToast('اختر متقدماً واحداً على الأقل','error');return;}
+  var msg=document.getElementById('msgBody').value.trim();
+  if(!msg){showToast('الرسالة فارغة','error');return;}
+  sendQueue=applicants.filter(function(a){return selectedApplicants[a.id];});
+  sendIndex=0;processQueue(msg);
+}
+function sendAllFiltered(){
+  var search=document.getElementById('searchBox').value.toLowerCase();
+  var filter=document.getElementById('filterStatus').value;
+  applicants.filter(function(a){return(!search||a.name.toLowerCase().indexOf(search)>=0)&&(!filter||a.status===filter);})
+    .forEach(function(a){selectedApplicants[a.id]=true;});
+  renderList();updateSelectedCount();sendMessages();
+}
+function processQueue(msgTemplate){
+  if(sendIndex>=sendQueue.length){
+    showToast('تم فتح واتساب لجميع المحددين ✓','success');
+    selectedApplicants={};renderList();updateSelectedCount();renderLog();return;
+  }
+  var a=sendQueue[sendIndex];
+  var msg=msgTemplate.replace(/\{الاسم\}/g,a.name).replace(/\{الوظيفة\}/g,a.job).replace(/\{الفرع\}/g,a.branch||'الربوة');
+  var phone=a.phone.replace(/^0/,'966').replace(/[\s\-]/g,'');
+  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
+
+  var rmap={'exp':'خبرة غير كافية','degree':'مؤهل غير مناسب','age':'العمر','iqama':'الإقامة','closed':'الوظيفة اكتملت','score':'النقاط'};
+  messageLog.unshift({
+    applicantId:a.id,name:a.name,phone:a.phone,job:a.job,
+    type:templates[currentType]?templates[currentType].name:'مخصص',
+    reason:currentReason?rmap[currentReason]||'':'—',
+    date:new Date().toLocaleString('ar-SA')
+  });
+  localStorage.setItem('wa_log',JSON.stringify(messageLog.slice(0,200)));
+  sendIndex++;
+  setTimeout(function(){processQueue(msgTemplate);},sendIndex<sendQueue.length?1200:400);
+}
+
+function renderTemplates(){
+  var grid=document.getElementById('templatesGrid');grid.innerHTML='';
+  Object.keys(templates).forEach(function(key){
+    var t=templates[key];
+    var card=document.createElement('div');card.className='template-card';
+    var hasReason=key.indexOf('rejected')===0;
+    card.innerHTML='<div class="template-card-head"><h3>'+t.name+'</h3><span class="tpl-badge '+t.badge+'">'+t.name+'</span></div>'+
+      '<div class="template-desc">'+t.desc+'</div>'+
+      '<textarea class="tpl-textarea" id="tplarea_'+key+'">'+t.text+'</textarea>'+
+      '<div class="vars-hint"><span class="var-tag">{الاسم}</span><span class="var-tag">{الوظيفة}</span><span class="var-tag">{الفرع}</span>'+(hasReason?'<span class="var-tag">{السبب}</span>':'')+'</div>'+
+      '<button class="btn-save-tpl" onclick="saveTpl(\''+key+'\')">💾 حفظ القالب</button>';
+    grid.appendChild(card);
+  });
+}
+function saveTpl(key){
+  templates[key].text=document.getElementById('tplarea_'+key).value;
+  localStorage.setItem('wa_tpl3',JSON.stringify(templates));
+  buildMessage();showToast('تم حفظ القالب ✓','success');
+}
+
+function renderLog(){
+  var tbody=document.getElementById('logBody');tbody.innerHTML='';
+  if(!messageLog.length){tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">📭</div><div style="font-size:13px">لا توجد رسائل بعد</div></div></td></tr>';return;}
+  messageLog.forEach(function(l){
+    var isRej=l.type&&l.type.indexOf('رفض')>=0;
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td style="font-weight:600">'+l.name+'</td>'+
+      '<td style="color:var(--text2)">'+l.job+'</td>'+
+      '<td><span class="badge '+(isRej?'badge-rejected':'badge-accepted')+'">'+l.type+'</span></td>'+
+      '<td style="color:var(--text2);font-size:12px">'+(l.reason||'—')+'</td>'+
+      '<td style="color:var(--text2);font-size:12px">'+l.date+'</td>';
+    tbody.appendChild(tr);
+  });
+}
+function clearLog(){messageLog=[];localStorage.removeItem('wa_log');renderLog();renderList();showToast('تم مسح السجل','success');}
+
+var toastTimer;
+function showToast(msg,type){
+  var t=document.getElementById('toast');t.textContent=msg;t.className='toast '+(type||'')+' show';
+  clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.className='toast';},2800);
+}
+init();
+</script>
+</body>
+</html>
