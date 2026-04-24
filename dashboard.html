@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>آد ماركت — لوحة التوظيف</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --surface2: #181c24;
+    --border: #1e2330;
+    --accent: #e8c84a;
+    --accent2: #f0d875;
+    --text: #e8eaf0;
+    --text2: #8892a4;
+    --text3: #4a5568;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --blue: #3b82f6;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== LOGIN SCREEN ===== */
+  #loginScreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at 30% 50%, #1a1500 0%, var(--bg) 60%);
+    position: relative;
+  }
+
+  #loginScreen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      0deg, transparent, transparent 40px,
+      rgba(232,200,74,0.03) 40px, rgba(232,200,74,0.03) 41px
+    ),
+    repeating-linear-gradient(
+      90deg, transparent, transparent 40px,
+      rgba(232,200,74,0.03) 40px, rgba(232,200,74,0.03) 41px
+    );
+    pointer-events: none;
+  }
+
+  .login-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px 40px;
+    width: 380px;
+    position: relative;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(232,200,74,0.08);
+    animation: fadeUp 0.5s ease;
+  }
+
+  .login-logo {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .login-logo .brand {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+  }
+
+  .login-logo .sub {
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 4px;
+  }
+
+  .role-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+  }
+
+  .role-tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    transition: all 0.2s;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+  }
+
+  .role-tab.active {
+    background: var(--surface2);
+    color: var(--accent);
+    border: 1px solid rgba(232,200,74,0.2);
+  }
+
+  .input-group {
+    margin-bottom: 16px;
+  }
+
+  .input-group label {
+    display: block;
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .input-group input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .input-group input:focus {
+    border-color: rgba(232,200,74,0.4);
+  }
+
+  .btn-login {
+    width: 100%;
+    background: var(--accent);
+    color: #0a0c10;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 8px;
+    transition: all 0.2s;
+  }
+
+  .btn-login:hover { background: var(--accent2); transform: translateY(-1px); }
+
+  .login-error {
+    color: var(--red);
+    font-size: 12px;
+    text-align: center;
+    margin-top: 12px;
+    display: none;
+  }
+
+  /* ===== MAIN APP ===== */
+  #appScreen { display: none; min-height: 100vh; }
+
+  .sidebar {
+    position: fixed;
+    top: 0; right: 0;
+    width: 220px;
+    height: 100vh;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0;
+    z-index: 100;
+  }
+
+  .sidebar-brand {
+    padding: 0 20px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .sidebar-brand .name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .sidebar-brand .role-badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-top: 4px;
+    font-weight: 600;
+  }
+
+  .role-admin { background: rgba(232,200,74,0.15); color: var(--accent); }
+  .role-supervisor { background: rgba(59,130,246,0.15); color: var(--blue); }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    cursor: pointer;
+    color: var(--text2);
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+    border-right: 3px solid transparent;
+    position: relative;
+  }
+
+  .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+
+  .nav-item.active {
+    color: var(--accent);
+    border-right-color: var(--accent);
+    background: rgba(232,200,74,0.06);
+  }
+
+  .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+  .sidebar-bottom {
+    margin-top: auto;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn-logout {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    color: var(--text2);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+
+  .btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+  .main-content {
+    margin-right: 220px;
+    padding: 32px;
+    min-height: 100vh;
+  }
+
+  /* ===== PAGE HEADER ===== */
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .page-sub {
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+
+  /* ===== STATS CARDS ===== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 60px; height: 60px;
+    border-radius: 0 0 0 60px;
+    opacity: 0.08;
+  }
+
+  .stat-card.total::before { background: var(--blue); }
+  .stat-card.review::before { background: var(--yellow); }
+  .stat-card.accepted::before { background: var(--green); }
+  .stat-card.rejected::before { background: var(--red); }
+
+  .stat-label { font-size: 12px; color: var(--text2); font-weight: 500; }
+  .stat-value { font-size: 32px; font-weight: 700; margin-top: 4px; }
+  .stat-card.total .stat-value { color: var(--blue); }
+  .stat-card.review .stat-value { color: var(--yellow); }
+  .stat-card.accepted .stat-value { color: var(--green); }
+  .stat-card.rejected .stat-value { color: var(--red); }
+
+  /* ===== TABLE SECTION ===== */
+  .table-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .table-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 200px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 14px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+  }
+
+  .search-box:focus { border-color: rgba(232,200,74,0.3); }
+  .search-box::placeholder { color: var(--text3); }
+
+  .filter-select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 14px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .filter-select:focus { border-color: rgba(232,200,74,0.3); }
+
+  .btn-refresh {
+    background: rgba(232,200,74,0.1);
+    border: 1px solid rgba(232,200,74,0.2);
+    border-radius: var(--radius-sm);
+    padding: 9px 16px;
+    color: var(--accent);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .btn-refresh:hover { background: rgba(232,200,74,0.18); }
+
+  .table-wrap { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    background: var(--surface2);
+    padding: 12px 16px;
+    text-align: right;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  tbody tr:last-child { border-bottom: none; }
+
+  td {
+    padding: 14px 16px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .badge-review { background: rgba(245,158,11,0.12); color: var(--yellow); }
+  .badge-accepted { background: rgba(34,197,94,0.12); color: var(--green); }
+  .badge-rejected { background: rgba(239,68,68,0.12); color: var(--red); }
+  .badge-pending { background: rgba(99,102,241,0.12); color: #818cf8; }
+
+  .score-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .score-track {
+    width: 60px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .score-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent);
+  }
+
+  .action-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    color: var(--text2);
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    margin-left: 4px;
+  }
+
+  .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .action-btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text2);
+  }
+
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-text { font-size: 14px; }
+
+  /* ===== SETTINGS PAGE ===== */
+  .settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .settings-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+
+  .settings-card h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .settings-desc {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 20px;
+  }
+
+  .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .setting-row:last-child { border-bottom: none; }
+
+  .setting-label {
+    font-size: 13px;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .setting-sub {
+    font-size: 11px;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+
+  .setting-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 12px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    width: 80px;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+
+  .setting-input:focus { border-color: rgba(232,200,74,0.4); }
+
+  .toggle {
+    position: relative;
+    width: 40px;
+    height: 22px;
+  }
+
+  .toggle input { opacity: 0; width: 0; height: 0; }
+
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 16px; width: 16px;
+    left: 3px; bottom: 3px;
+    background: var(--text2);
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+
+  .toggle input:checked + .toggle-slider { background: rgba(232,200,74,0.3); }
+  .toggle input:checked + .toggle-slider::before {
+    transform: translateX(18px);
+    background: var(--accent);
+  }
+
+  .btn-save {
+    background: var(--accent);
+    color: #0a0c10;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 11px 24px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 20px;
+    transition: all 0.2s;
+  }
+
+  .btn-save:hover { background: var(--accent2); }
+
+  /* ===== CONFIG PAGE ===== */
+  .config-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+
+  .config-card h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .config-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 11px 14px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: 'Courier New', monospace;
+    outline: none;
+    margin-top: 12px;
+    transition: border-color 0.2s;
+  }
+
+  .config-input:focus { border-color: rgba(232,200,74,0.4); }
+
+  .config-hint {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 6px;
+  }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    width: 480px;
+    max-width: 95vw;
+    animation: fadeUp 0.3s ease;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+  }
+
+  .modal h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--text);
+  }
+
+  .modal-row {
+    margin-bottom: 16px;
+  }
+
+  .modal-row label {
+    display: block;
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  .modal-select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .btn-primary {
+    flex: 1;
+    background: var(--accent);
+    color: #0a0c10;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 11px;
+    color: var(--text2);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel:hover { border-color: var(--text2); color: var(--text); }
+
+  /* ===== LOADING ===== */
+  .loading-overlay {
+    position: fixed; inset: 0;
+    background: rgba(10,12,16,0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+  }
+
+  .loading-overlay.show { display: flex; }
+
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: transform 0.3s ease;
+    z-index: 3000;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: rgba(34,197,94,0.3); color: var(--green); }
+  .toast.error { border-color: rgba(239,68,68,0.3); color: var(--red); }
+
+  /* ===== HIDDEN PAGES ===== */
+  .page { display: none; }
+  .page.active { display: block; animation: fadeUp 0.3s ease; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* ===== SUPERVISOR BANNER ===== */
+  .supervisor-banner {
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--blue);
+    margin-bottom: 20px;
+    display: none;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 4px;
+  }
+
+  .detail-item { }
+  .detail-item .dl { font-size: 11px; color: var(--text2); margin-bottom: 2px; }
+  .detail-item .dv { font-size: 13px; color: var(--text); }
+
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main-content { margin-right: 0; padding: 20px; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .settings-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="brand">آد ماركت</div>
+      <div class="sub">نظام إدارة التوظيف</div>
+    </div>
+    <div class="role-tabs">
+      <button class="role-tab active" onclick="selectRole('admin')">مدير النظام</button>
+      <button class="role-tab" onclick="selectRole('supervisor')">مشرف</button>
+    </div>
+    <div class="input-group">
+      <label>اسم المستخدم</label>
+      <input type="text" id="loginUser" placeholder="أدخل اسم المستخدم" />
+    </div>
+    <div class="input-group">
+      <label>كلمة المرور</label>
+      <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()" />
+    </div>
+    <button class="btn-login" onclick="doLogin()">دخول</button>
+    <div class="login-error" id="loginError">اسم المستخدم أو كلمة المرور غلط</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appScreen">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <div class="name">آد ماركت</div>
+      <span class="role-badge" id="roleBadge">—</span>
+    </div>
+    <div class="nav-item active" onclick="showPage('applicants')">
+      <span class="nav-icon">👥</span> المتقدمون
+    </div>
+    <div class="nav-item" onclick="showPage('settings')" id="navSettings">
+      <span class="nav-icon">⚙️</span> إعدادات الفرز
+    </div>
+    <div class="nav-item" onclick="showPage('config')" id="navConfig">
+      <span class="nav-icon">🔗</span> ربط Google Sheets
+    </div>
+    <div class="sidebar-bottom">
+      <button class="btn-logout" onclick="doLogout()">تسجيل الخروج</button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="supervisor-banner" id="supervisorBanner">
+      👁️ أنت في وضع المشرف — يمكنك عرض البيانات فقط بدون تعديل
+    </div>
+
+    <!-- APPLICANTS PAGE -->
+    <div class="page active" id="pageApplicants">
+      <div class="page-header">
+        <div>
+          <div class="page-title">المتقدمون</div>
+          <div class="page-sub">جميع طلبات التوظيف الواردة</div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card total">
+          <div class="stat-label">إجمالي الطلبات</div>
+          <div class="stat-value" id="statTotal">—</div>
+        </div>
+        <div class="stat-card review">
+          <div class="stat-label">قيد المراجعة</div>
+          <div class="stat-value" id="statReview">—</div>
+        </div>
+        <div class="stat-card accepted">
+          <div class="stat-label">مقبول</div>
+          <div class="stat-value" id="statAccepted">—</div>
+        </div>
+        <div class="stat-card rejected">
+          <div class="stat-label">مرفوض</div>
+          <div class="stat-value" id="statRejected">—</div>
+        </div>
+      </div>
+
+      <div class="table-section">
+        <div class="table-toolbar">
+          <input class="search-box" id="searchBox" placeholder="🔍  ابحث بالاسم أو رقم الجوال..." oninput="renderTable()" />
+          <select class="filter-select" id="filterStatus" onchange="renderTable()">
+            <option value="">كل الحالات</option>
+            <option value="مراجعة">قيد المراجعة</option>
+            <option value="مقبول">مقبول</option>
+            <option value="مرفوض">مرفوض</option>
+          </select>
+          <select class="filter-select" id="filterJob" onchange="renderTable()">
+            <option value="">كل الوظائف</option>
+          </select>
+          <button class="btn-refresh" onclick="loadData()">🔄 تحديث</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>الاسم</th>
+                <th>الوظيفة</th>
+                <th>الجوال</th>
+                <th>النقاط</th>
+                <th>الحالة</th>
+                <th>تاريخ التقديم</th>
+                <th id="actionsHeader">إجراء</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div class="page" id="pageSettings">
+      <div class="page-header">
+        <div>
+          <div class="page-title">إعدادات الفرز والتقييم</div>
+          <div class="page-sub">تحكم في نقاط الأفضلية وشروط الرفض التلقائي</div>
+        </div>
+      </div>
+      <div class="settings-grid">
+        <!-- Scoring -->
+        <div class="settings-card">
+          <h3>نقاط الأفضلية</h3>
+          <div class="settings-desc">كل معيار مجتمع يرفع نقاط المتقدم</div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">خبرة في التجزئة</div>
+              <div class="setting-sub">سنة أو أكثر في السوبرماركت</div>
+            </div>
+            <input class="setting-input" type="number" id="pts_retail" value="3" min="0" max="10" />
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">مؤهل محاسبي</div>
+              <div class="setting-sub">بكالوريوس أو دبلوم محاسبة</div>
+            </div>
+            <input class="setting-input" type="number" id="pts_degree" value="2" min="0" max="10" />
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">مقيم في الرياض</div>
+              <div class="setting-sub">لا يحتاج انتقال</div>
+            </div>
+            <input class="setting-input" type="number" id="pts_riyadh" value="1" min="0" max="10" />
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">متاح فوراً</div>
+              <div class="setting-sub">جاهز للبدء خلال أسبوع</div>
+            </div>
+            <input class="setting-input" type="number" id="pts_available" value="1" min="0" max="10" />
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">أجاب على الاختبار</div>
+              <div class="setting-sub">أكمل الاختبار المحاسبي</div>
+            </div>
+            <input class="setting-input" type="number" id="pts_test" value="3" min="0" max="10" />
+          </div>
+          <button class="btn-save" onclick="saveSettings()">💾 حفظ النقاط</button>
+        </div>
+
+        <!-- Rejection -->
+        <div class="settings-card">
+          <h3>شروط الرفض التلقائي</h3>
+          <div class="settings-desc">يُرفض الطلب تلقائياً إذا تحقق أي شرط من هذه</div>
+
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">جنسية غير مسموح بها</div>
+              <div class="setting-sub">فعّل إذا كان هناك قيد جنسية</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="rej_nationality" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">العمر أقل من 18</div>
+              <div class="setting-sub">رفض تلقائي للقاصرين</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="rej_age" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">لا يملك إقامة سارية</div>
+              <div class="setting-sub">ينطبق على غير السعوديين</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="rej_iqama" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">الحد الأدنى للنقاط</div>
+              <div class="setting-sub">رفض من هو أقل من هذا الرقم</div>
+            </div>
+            <input class="setting-input" type="number" id="rej_minscore" value="2" min="0" max="20" />
+          </div>
+          <button class="btn-save" onclick="saveSettings()">💾 حفظ الشروط</button>
+        </div>
+
+        <!-- Thresholds -->
+        <div class="settings-card">
+          <h3>حدود الحالات</h3>
+          <div class="settings-desc">متى ينتقل المتقدم من حالة لأخرى</div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">نقاط للانتقال لـ "مراجعة"</div>
+            </div>
+            <input class="setting-input" type="number" id="thresh_review" value="3" min="0" />
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-label">نقاط للانتقال لـ "مقبول"</div>
+            </div>
+            <input class="setting-input" type="number" id="thresh_accept" value="6" min="0" />
+          </div>
+          <button class="btn-save" onclick="saveSettings()">💾 حفظ الحدود</button>
+        </div>
+
+        <!-- Credentials -->
+        <div class="settings-card">
+          <h3>بيانات تسجيل الدخول</h3>
+          <div class="settings-desc">تغيير كلمات مرور النظام</div>
+          <div class="setting-row">
+            <div><div class="setting-label">كلمة مرور الإدمن</div></div>
+            <input class="setting-input" type="password" id="pwd_admin" placeholder="••••••" style="width:120px" />
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">كلمة مرور المشرف</div></div>
+            <input class="setting-input" type="password" id="pwd_supervisor" placeholder="••••••" style="width:120px" />
+          </div>
+          <button class="btn-save" onclick="saveCredentials()">💾 حفظ كلمات المرور</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIG PAGE -->
+    <div class="page" id="pageConfig">
+      <div class="page-header">
+        <div>
+          <div class="page-title">ربط Google Sheets</div>
+          <div class="page-sub">أدخل بيانات الربط لجلب المتقدمين تلقائياً</div>
+        </div>
+      </div>
+
+      <div class="config-card">
+        <h3>🔗 إعدادات Apps Script</h3>
+        <div class="settings-desc" style="font-size:12px;color:var(--text2);margin-top:4px;">هذه البيانات تُحفظ على جهازك فقط ولا تُرسل لأي مكان</div>
+
+        <div style="margin-top:20px">
+          <label style="font-size:12px;color:var(--text2);font-weight:500">رابط Web App (Apps Script URL)</label>
+          <input class="config-input" id="cfg_scriptUrl" placeholder="https://script.google.com/macros/s/AKf.../exec" />
+          <div class="config-hint">من Apps Script → Deploy → Manage Deployments → انسخ الرابط</div>
+        </div>
+
+        <div style="margin-top:16px">
+          <label style="font-size:12px;color:var(--text2);font-weight:500">Spreadsheet ID</label>
+          <input class="config-input" id="cfg_sheetId" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" />
+          <div class="config-hint">من رابط الشيت: docs.google.com/spreadsheets/d/<b>ID هنا</b>/edit</div>
+        </div>
+
+        <div style="margin-top:16px">
+          <label style="font-size:12px;color:var(--text2);font-weight:500">اسم الورقة (Sheet Name)</label>
+          <input class="config-input" id="cfg_sheetName" placeholder="Applicants" style="font-family:'IBM Plex Sans Arabic',sans-serif" />
+        </div>
+
+        <button class="btn-save" onclick="saveConfig()">💾 حفظ الإعدادات</button>
+        <button class="btn-save" style="background:transparent;border:1px solid var(--border);color:var(--text2);margin-right:10px" onclick="testConnection()">🧪 اختبار الاتصال</button>
+      </div>
+
+      <div class="config-card">
+        <h3>📋 تنسيق بيانات الشيت المتوقع</h3>
+        <div class="settings-desc">تأكد أن الأعمدة بهذا الترتيب في Sheets:</div>
+        <div style="font-size:12px;color:var(--text2);line-height:2;margin-top:8px">
+          <b style="color:var(--accent)">A</b> — الطابع الزمني (Timestamp) &nbsp;|&nbsp;
+          <b style="color:var(--accent)">B</b> — الاسم &nbsp;|&nbsp;
+          <b style="color:var(--accent)">C</b> — الجوال &nbsp;|&nbsp;
+          <b style="color:var(--accent)">D</b> — الوظيفة المطلوبة<br>
+          <b style="color:var(--accent)">E</b> — الجنسية &nbsp;|&nbsp;
+          <b style="color:var(--accent)">F</b> — العمر &nbsp;|&nbsp;
+          <b style="color:var(--accent)">G</b> — الخبرة &nbsp;|&nbsp;
+          <b style="color:var(--accent)">H</b> — النقاط<br>
+          <b style="color:var(--accent)">I</b> — الحالة التلقائية &nbsp;|&nbsp;
+          <b style="color:var(--accent)">J</b> — الحالة اليدوية (تُعدَّل من الداشبورد)
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Change Status -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>تغيير حالة المتقدم</h3>
+    <div style="margin-bottom:16px">
+      <div style="font-size:13px;color:var(--text2)">المتقدم:</div>
+      <div style="font-size:15px;font-weight:600;margin-top:4px" id="modalName">—</div>
+    </div>
+    <div class="modal-row">
+      <label>الحالة الجديدة</label>
+      <select class="modal-select" id="modalStatus">
+        <option value="مراجعة">🟡 قيد المراجعة</option>
+        <option value="مقبول">🟢 مقبول</option>
+        <option value="مرفوض">🔴 مرفوض</option>
+        <option value="انتظار">🔵 انتظار</option>
+      </select>
+    </div>
+    <div class="modal-row">
+      <label>ملاحظة (اختياري)</label>
+      <input class="config-input" id="modalNote" placeholder="أضف ملاحظة..." style="font-family:'IBM Plex Sans Arabic',sans-serif" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="confirmStatusChange()">تأكيد</button>
+      <button class="btn-cancel" onclick="closeModal()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== STATE =====
+var currentRole = 'admin';
+var currentUser = null;
+var allApplicants = [];
+var editingRow = null;
+
+var config = {
+  scriptUrl: '',
+  sheetId: '',
+  sheetName: 'Applicants'
+};
+
+var settings = {
+  pts_retail: 3, pts_degree: 2, pts_riyadh: 1,
+  pts_available: 1, pts_test: 3,
+  rej_nationality: false, rej_age: true, rej_iqama: true, rej_minscore: 2,
+  thresh_review: 3, thresh_accept: 6
+};
+
+var credentials = {
+  admin: { user: 'admin', pass: 'add2024' },
+  supervisor: { user: 'supervisor', pass: 'view2024' }
+};
+
+// ===== INIT =====
+function init() {
+  var saved = localStorage.getItem('addmarket_config');
+  if (saved) config = JSON.parse(saved);
+
+  var savedSettings = localStorage.getItem('addmarket_settings');
+  if (savedSettings) settings = JSON.parse(savedSettings);
+
+  var savedCreds = localStorage.getItem('addmarket_creds');
+  if (savedCreds) credentials = JSON.parse(savedCreds);
+
+  loadSettingsToUI();
+}
+
+function loadSettingsToUI() {
+  document.getElementById('pts_retail').value = settings.pts_retail;
+  document.getElementById('pts_degree').value = settings.pts_degree;
+  document.getElementById('pts_riyadh').value = settings.pts_riyadh;
+  document.getElementById('pts_available').value = settings.pts_available;
+  document.getElementById('pts_test').value = settings.pts_test;
+  document.getElementById('rej_nationality').checked = settings.rej_nationality;
+  document.getElementById('rej_age').checked = settings.rej_age;
+  document.getElementById('rej_iqama').checked = settings.rej_iqama;
+  document.getElementById('rej_minscore').value = settings.rej_minscore;
+  document.getElementById('thresh_review').value = settings.thresh_review;
+  document.getElementById('thresh_accept').value = settings.thresh_accept;
+  document.getElementById('cfg_scriptUrl').value = config.scriptUrl || '';
+  document.getElementById('cfg_sheetId').value = config.sheetId || '';
+  document.getElementById('cfg_sheetName').value = config.sheetName || 'Applicants';
+}
+
+// ===== AUTH =====
+function selectRole(role) {
+  currentRole = role;
+  document.querySelectorAll('.role-tab').forEach(function(t) { t.classList.remove('active'); });
+  event.target.classList.add('active');
+}
+
+function doLogin() {
+  var user = document.getElementById('loginUser').value.trim();
+  var pass = document.getElementById('loginPass').value;
+  var err = document.getElementById('loginError');
+
+  var match = false;
+  if (currentRole === 'admin' && user === credentials.admin.user && pass === credentials.admin.pass) match = true;
+  if (currentRole === 'supervisor' && user === credentials.supervisor.user && pass === credentials.supervisor.pass) match = true;
+
+  if (!match) {
+    err.style.display = 'block';
+    return;
+  }
+
+  err.style.display = 'none';
+  currentUser = { role: currentRole, username: user };
+
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+
+  var badge = document.getElementById('roleBadge');
+  if (currentRole === 'admin') {
+    badge.textContent = 'مدير النظام';
+    badge.className = 'role-badge role-admin';
+    document.getElementById('supervisorBanner').style.display = 'none';
+    document.getElementById('navSettings').style.display = 'flex';
+    document.getElementById('navConfig').style.display = 'flex';
+    document.getElementById('actionsHeader').style.display = '';
+  } else {
+    badge.textContent = 'مشرف';
+    badge.className = 'role-badge role-supervisor';
+    document.getElementById('supervisorBanner').style.display = 'block';
+    document.getElementById('navSettings').style.display = 'none';
+    document.getElementById('navConfig').style.display = 'none';
+    document.getElementById('actionsHeader').style.display = 'none';
+  }
+
+  loadData();
+}
+
+function doLogout() {
+  currentUser = null;
+  allApplicants = [];
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+// ===== NAVIGATION =====
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById('page' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+  event.currentTarget.classList.add('active');
+}
+
+// ===== DATA LOADING =====
+function loadData() {
+  if (!config.scriptUrl) {
+    // Demo data
+    allApplicants = [
+      { row: 2, timestamp: '2025-01-20 10:30', name: 'محمد العمري', phone: '0501234567', job: 'محاسب عام', nationality: 'سعودي', age: 28, exp: 'نعم', score: 7, autoStatus: 'مقبول', manualStatus: 'مقبول' },
+      { row: 3, timestamp: '2025-01-20 11:15', name: 'أحمد الشهري', phone: '0559876543', job: 'محاسب عام', nationality: 'سعودي', age: 24, exp: 'لا', score: 3, autoStatus: 'مراجعة', manualStatus: 'مراجعة' },
+      { row: 4, timestamp: '2025-01-20 12:00', name: 'خالد المطيري', phone: '0531122334', job: 'محاسب عام', nationality: 'يمني', age: 22, exp: 'نعم', score: 4, autoStatus: 'مراجعة', manualStatus: '' },
+      { row: 5, timestamp: '2025-01-20 14:30', name: 'عمر القحطاني', phone: '0507788990', job: 'محاسب عام', nationality: 'سعودي', age: 19, exp: 'لا', score: 1, autoStatus: 'مرفوض', manualStatus: 'مرفوض' },
+      { row: 6, timestamp: '2025-01-21 09:00', name: 'فهد الدوسري', phone: '0544556677', job: 'محاسب عام', nationality: 'سعودي', age: 31, exp: 'نعم', score: 8, autoStatus: 'مقبول', manualStatus: '' }
+    ];
+    renderTable();
+    updateStats();
+    updateJobFilter();
+    return;
+  }
+
+  showLoading(true);
+  var url = config.scriptUrl + '?action=getApplicants&sheetName=' + encodeURIComponent(config.sheetName);
+  fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      allApplicants = data.applicants || [];
+      renderTable();
+      updateStats();
+      updateJobFilter();
+      showToast('تم تحديث البيانات ✓', 'success');
+    })
+    .catch(function() {
+      showToast('فشل الاتصال بالشيت — تأكد من الإعدادات', 'error');
+    })
+    .finally(function() { showLoading(false); });
+}
+
+function updateJobFilter() {
+  var jobs = {};
+  allApplicants.forEach(function(a) { if (a.job) jobs[a.job] = 1; });
+  var sel = document.getElementById('filterJob');
+  var current = sel.value;
+  sel.innerHTML = '<option value="">كل الوظائف</option>';
+  Object.keys(jobs).forEach(function(j) {
+    var opt = document.createElement('option');
+    opt.value = j; opt.textContent = j;
+    if (j === current) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+// ===== RENDER TABLE =====
+function renderTable() {
+  var search = document.getElementById('searchBox').value.toLowerCase();
+  var filterStatus = document.getElementById('filterStatus').value;
+  var filterJob = document.getElementById('filterJob').value;
+
+  var filtered = allApplicants.filter(function(a) {
+    var status = a.manualStatus || a.autoStatus || '';
+    var matchSearch = !search || (a.name && a.name.toLowerCase().indexOf(search) >= 0) || (a.phone && a.phone.indexOf(search) >= 0);
+    var matchStatus = !filterStatus || status.indexOf(filterStatus) >= 0;
+    var matchJob = !filterJob || a.job === filterJob;
+    return matchSearch && matchStatus && matchJob;
+  });
+
+  var tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">لا توجد نتائج</div></div></td></tr>';
+    return;
+  }
+
+  filtered.forEach(function(a, i) {
+    var status = a.manualStatus || a.autoStatus || 'انتظار';
+    var badgeClass = status === 'مقبول' ? 'badge-accepted' : status === 'مرفوض' ? 'badge-rejected' : status === 'مراجعة' ? 'badge-review' : 'badge-pending';
+    var maxScore = settings.pts_retail + settings.pts_degree + settings.pts_riyadh + settings.pts_available + settings.pts_test;
+    var scorePct = maxScore > 0 ? Math.min(100, Math.round((a.score / maxScore) * 100)) : 0;
+
+    var actions = '';
+    if (currentUser && currentUser.role === 'admin') {
+      actions = '<button class="action-btn" onclick="openModal(' + i + ')">✏️ تعديل</button>';
+    }
+
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td style="color:var(--text2)">' + (i + 1) + '</td>' +
+      '<td style="font-weight:600">' + (a.name || '—') + '</td>' +
+      '<td style="color:var(--text2)">' + (a.job || '—') + '</td>' +
+      '<td style="direction:ltr;text-align:right">' + (a.phone || '—') + '</td>' +
+      '<td><div class="score-bar"><span style="font-size:13px;font-weight:600;color:var(--accent)">' + (a.score || 0) + '</span><div class="score-track"><div class="score-fill" style="width:' + scorePct + '%"></div></div></div></td>' +
+      '<td><span class="badge ' + badgeClass + '">' + status + '</span></td>' +
+      '<td style="color:var(--text2);font-size:12px">' + formatDate(a.timestamp) + '</td>' +
+      '<td>' + actions + '</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function formatDate(ts) {
+  if (!ts) return '—';
+  var d = new Date(ts);
+  if (isNaN(d)) return ts;
+  return d.toLocaleDateString('ar-SA');
+}
+
+// ===== STATS =====
+function updateStats() {
+  var total = allApplicants.length;
+  var review = allApplicants.filter(function(a) { return (a.manualStatus || a.autoStatus || '').indexOf('مراجعة') >= 0; }).length;
+  var accepted = allApplicants.filter(function(a) { return (a.manualStatus || a.autoStatus || '') === 'مقبول'; }).length;
+  var rejected = allApplicants.filter(function(a) { return (a.manualStatus || a.autoStatus || '') === 'مرفوض'; }).length;
+
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statReview').textContent = review;
+  document.getElementById('statAccepted').textContent = accepted;
+  document.getElementById('statRejected').textContent = rejected;
+}
+
+// ===== MODAL =====
+var modalIndex = -1;
+
+function openModal(index) {
+  var search = document.getElementById('searchBox').value.toLowerCase();
+  var filterStatus = document.getElementById('filterStatus').value;
+  var filterJob = document.getElementById('filterJob').value;
+  var filtered = allApplicants.filter(function(a) {
+    var status = a.manualStatus || a.autoStatus || '';
+    var matchSearch = !search || (a.name && a.name.toLowerCase().indexOf(search) >= 0) || (a.phone && a.phone.indexOf(search) >= 0);
+    var matchStatus = !filterStatus || status.indexOf(filterStatus) >= 0;
+    var matchJob = !filterJob || a.job === filterJob;
+    return matchSearch && matchStatus && matchJob;
+  });
+
+  var applicant = filtered[index];
+  if (!applicant) return;
+
+  modalIndex = allApplicants.indexOf(applicant);
+  document.getElementById('modalName').textContent = applicant.name || '—';
+  document.getElementById('modalStatus').value = applicant.manualStatus || applicant.autoStatus || 'مراجعة';
+  document.getElementById('modalNote').value = '';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  modalIndex = -1;
+}
+
+function confirmStatusChange() {
+  if (modalIndex < 0) return;
+  var newStatus = document.getElementById('modalStatus').value;
+  allApplicants[modalIndex].manualStatus = newStatus;
+  closeModal();
+  renderTable();
+  updateStats();
+
+  // Push to Sheets
+  if (config.scriptUrl) {
+    var applicant = allApplicants[modalIndex];
+    var url = config.scriptUrl + '?action=updateStatus&row=' + applicant.row + '&status=' + encodeURIComponent(newStatus) + '&sheetName=' + encodeURIComponent(config.sheetName);
+    fetch(url).catch(function() {});
+  }
+
+  showToast('تم تحديث الحالة ✓', 'success');
+}
+
+// ===== SETTINGS =====
+function saveSettings() {
+  settings.pts_retail = parseInt(document.getElementById('pts_retail').value) || 0;
+  settings.pts_degree = parseInt(document.getElementById('pts_degree').value) || 0;
+  settings.pts_riyadh = parseInt(document.getElementById('pts_riyadh').value) || 0;
+  settings.pts_available = parseInt(document.getElementById('pts_available').value) || 0;
+  settings.pts_test = parseInt(document.getElementById('pts_test').value) || 0;
+  settings.rej_nationality = document.getElementById('rej_nationality').checked;
+  settings.rej_age = document.getElementById('rej_age').checked;
+  settings.rej_iqama = document.getElementById('rej_iqama').checked;
+  settings.rej_minscore = parseInt(document.getElementById('rej_minscore').value) || 0;
+  settings.thresh_review = parseInt(document.getElementById('thresh_review').value) || 0;
+  settings.thresh_accept = parseInt(document.getElementById('thresh_accept').value) || 0;
+
+  localStorage.setItem('addmarket_settings', JSON.stringify(settings));
+  showToast('تم حفظ الإعدادات ✓', 'success');
+}
+
+function saveCredentials() {
+  var ap = document.getElementById('pwd_admin').value;
+  var sp = document.getElementById('pwd_supervisor').value;
+  if (ap) credentials.admin.pass = ap;
+  if (sp) credentials.supervisor.pass = sp;
+  localStorage.setItem('addmarket_creds', JSON.stringify(credentials));
+  document.getElementById('pwd_admin').value = '';
+  document.getElementById('pwd_supervisor').value = '';
+  showToast('تم تحديث كلمات المرور ✓', 'success');
+}
+
+function saveConfig() {
+  config.scriptUrl = document.getElementById('cfg_scriptUrl').value.trim();
+  config.sheetId = document.getElementById('cfg_sheetId').value.trim();
+  config.sheetName = document.getElementById('cfg_sheetName').value.trim() || 'Applicants';
+  localStorage.setItem('addmarket_config', JSON.stringify(config));
+  showToast('تم حفظ إعدادات الشيت ✓', 'success');
+}
+
+function testConnection() {
+  if (!config.scriptUrl) {
+    showToast('أدخل رابط Apps Script أولاً', 'error');
+    return;
+  }
+  showLoading(true);
+  fetch(config.scriptUrl + '?action=ping')
+    .then(function() { showToast('الاتصال ناجح ✓', 'success'); })
+    .catch(function() { showToast('فشل الاتصال — تحقق من الرابط', 'error'); })
+    .finally(function() { showLoading(false); });
+}
+
+// ===== HELPERS =====
+function showLoading(show) {
+  document.getElementById('loadingOverlay').className = 'loading-overlay' + (show ? ' show' : '');
+}
+
+var toastTimer;
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (type || '') + ' show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { t.className = 'toast'; }, 2800);
+}
+
+// ===== BOOT =====
+init();
+</script>
+</body>
+</html>
